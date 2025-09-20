@@ -1,1 +1,2 @@
-# NTP-double-pendulum-simulation
+# Simulacija dvostrukog klatna
+**Ciljna ocena: 10**
