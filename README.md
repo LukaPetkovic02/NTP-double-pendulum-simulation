@@ -98,3 +98,25 @@ Problem se rešava numeričkim integrisanjem sistema od 4 diferencijalne jednač
 - 30 pokretanja po konfiguraciji za statički značajne rezultate
 - Računanje speedup faktora i efikasnosti
 - Poređenje sa teoretskim maksimumima
+
+---
+## Dodatak za diplomski rad
+
+### Implementacija u Go-u
+
+Pored Python i Rust implementacija, razvijena je i implementacija u jeziku GoLang (Go).
+Golang se uvodi jer je jednostavan i čitljiv jezik sa minimalnom sintaksom. Takođe, sadrži prirodnu podršku za konkurentnost kroz *goroutines* i *channels*.
+Pruža balans između brzine izvršavanja i jednostavnosti razvoja.
+
+Za sekvencijalnu verziju bi se koristila direktna implementacija Runge-Kutta metode, slično kao kod Python i Rust implementacije.
+Za paralelnu verziju koristio bih *goroutines* za podelu posla.
+Rezultate bih objedinio preko kanala.
+
+Na samom kraju, uporedio bih implementacije ova 3 jezika u vidu složenosti koda, brzine razvoja, brzine izvršavanja, paralelizacija itd.
+
+### Opciono: Trostruko klatno (Triple Pendulum)
+
+Proširenje dvostrukog klatna gde se treći segment dodaje na kraj drugog.
+Sistem postaje još haotičniji, a i broj stanja raste (potrebno je rešavati *6 diferencijalnih jednačina prvog reda* (θ₁, θ₂, θ₃, ω₁, ω₂, ω₃)).
+
+Implementacija bi bila ostvarena u jednom od prethodna 3 jezika, u zavisnosti od performansi. Ovaj problem je dosta izazovniji za paralelizaciju, ali bi vizuelizacija bila još atraktivnija.
