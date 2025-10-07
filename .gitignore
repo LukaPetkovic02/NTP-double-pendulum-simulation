@@ -1,0 +1,48 @@
+# -----------------------------
+# Python
+# -----------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+
+# Virtualna okruženja
+venv/
+env/
+ENV/
+.venv/
+
+# Pipenv / Poetry
+Pipfile.lock
+poetry.lock
+
+# -----------------------------
+# Output fajlovi simulacije
+# -----------------------------
+python/outputs/
+python/outputs/parallel/
+
+# Log fajlovi
+*.log
+
+# -----------------------------
+# IDE specifično
+# -----------------------------
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# -----------------------------
+# OS fajlovi
+# -----------------------------
+.DS_Store
+Thumbs.db
+
+# -----------------------------
+# Rust target folder (ako dodaješ Rust implementaciju)
+# -----------------------------
+target/
+Cargo.lock

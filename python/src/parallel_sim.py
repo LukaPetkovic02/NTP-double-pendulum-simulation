@@ -19,7 +19,7 @@ def make_initial_conditions(base, n, delta=1e-3):
     return inits
 
 if __name__ == "__main__":
-    outdir = "python/outputs/parallel"
+    outdir = "outputs/parallel"
     os.makedirs(outdir, exist_ok=True)
     dt = 0.001
     steps = 100000  # za razvoj; povećaš za finalno merenje
