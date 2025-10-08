@@ -24,6 +24,9 @@ poetry.lock
 python/outputs/
 python/outputs/parallel/
 
+rust/rust_outputs/
+rust/rust_outputs/parallel/
+
 # Log fajlovi
 *.log
 
