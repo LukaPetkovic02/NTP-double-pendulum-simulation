@@ -4,6 +4,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use gif::{Encoder, Frame, Repeat};
 use std::fs::OpenOptions;
+use plotters::style::RGBAColor;
 
 #[derive(Debug)]
 struct PendulumState {
@@ -51,6 +52,9 @@ fn read_trajectory(path: &str, y_offset: f64) -> Result<Vec<PendulumState>, Box<
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
+    let trail_length = 30;
+    let mut trail: Vec<(f64, f64)> = Vec::new();
+
     let y_offset = 0.5;
     let data = read_trajectory("rust_outputs/traj_000.csv", y_offset)?;
     let output_gif = "visualization/pendulum_animation.gif";
@@ -80,6 +84,24 @@ fn main() -> Result<(), Box<dyn Error>> {
             .build_cartesian_2d(-2.0..2.0, -2.0..2.0)?;
 
         chart.configure_mesh().disable_mesh().draw()?;
+
+        // Dodaj trenutnu poziciju druge mase u trag
+        trail.push((state.x2, state.y2));
+        if trail.len() > trail_length {
+            trail.remove(0);
+        }
+
+        // Nacrtaj trag sa fade-out efektom
+        for (j, &(tx, ty)) in trail.iter().enumerate() {
+            let alpha = (j as f64) / (trail_length as f64); // 0.0 → 1.0
+            let color = RGBAColor(255, 0, 0, alpha); // crveni sa providnošću
+            chart.draw_series(PointSeries::of_element(
+                vec![(tx, ty)],
+                3,
+                ShapeStyle::from(&color).filled(),
+                &|c, s, st| EmptyElement::at(c) + Circle::new((0, 0), s, st),
+            ))?;
+        }
 
         // fiksna gornja tacka (pivot)
         chart.draw_series(PointSeries::of_element(
