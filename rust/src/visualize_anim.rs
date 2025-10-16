@@ -7,6 +7,10 @@ use std::fs::OpenOptions;
 
 #[derive(Debug)]
 struct PendulumState {
+    theta1: f64,
+    theta2: f64,
+    omega1: f64,
+    omega2: f64,
     x1: f64,
     y1: f64,
     x2: f64,
@@ -33,12 +37,14 @@ fn read_trajectory(path: &str, y_offset: f64) -> Result<Vec<PendulumState>, Box<
 
         if values.len() >= 6 {
             let theta1 = values[1];
+            let omega1 = values[2];
             let theta2 = values[3];
+            let omega2 = values[4];
             let x1 = l1 * theta1.sin();
             let y1 = -l1 * theta1.cos() + y_offset;
             let x2 = x1 + l2 * theta2.sin();
             let y2 = y1 - l2 * theta2.cos();
-            data.push(PendulumState { x1, y1, x2, y2 });
+            data.push(PendulumState {theta1,theta2,omega1,omega2, x1, y1, x2, y2 });
         }
     }
     Ok(data)
@@ -57,6 +63,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     let gif_file = OpenOptions::new().write(true).create(true).open(output_gif)?;
     let mut encoder = Encoder::new(gif_file, width as u16, height as u16, &[])?;
     encoder.set_repeat(Repeat::Infinite)?;
+
+    let m1 = 1.0;
+    let m2 = 1.0;
+    let l1 = 1.0;
+    let l2 = 1.0;
+    let g = 9.81;
 
     let frame_skip = 10;
     for (i, state) in data.iter().enumerate().step_by(frame_skip) {
@@ -90,6 +102,30 @@ fn main() -> Result<(), Box<dyn Error>> {
             5,
             ShapeStyle::from(&RED).filled(),
             &|c, s, st| return EmptyElement::at(c) + Circle::new((0,0), s, st),
+        ))?;
+
+        // --- Izračunavanje energija ---
+        let theta1 = state.theta1;
+        let theta2 = state.theta2;
+        let omega1 = state.omega1;
+        let omega2 = state.omega2;
+
+        let e_pot = - (m1 * g * l1 * theta1.cos() + m2 * g * (l1 * theta1.cos() + l2 * theta2.cos()));
+        let e_kin = 0.5 * m1 * (l1 * omega1).powi(2)
+            + 0.5 * m2
+                * ((l1 * omega1).powi(2)
+                    + (l2 * omega2).powi(2)
+                    + 2.0 * l1 * l2 * omega1 * omega2 * (theta1 - theta2).cos());
+        let e_tot = e_pot + e_kin;
+
+        // --- Ispis energije na slici ---
+        root_area.draw(&Text::new(
+            format!(
+                "E_pot = {:.2}  E_kin = {:.2}  E_tot = {:.2}",
+                e_pot, e_kin, e_tot
+            ),
+            (50, 60),
+            TextStyle::from(("sans-serif", 18).into_font()).color(&BLACK),
         ))?;
 
         // Pretvori trenutni frame u RGB bafer
