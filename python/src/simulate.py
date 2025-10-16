@@ -23,8 +23,8 @@ def run_single(output_path, y0, params, dt, steps):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", default="outputs/traj_000.csv")
-    parser.add_argument("--dt", type=float, default=0.01)
-    parser.add_argument("--steps", type=int, default=10000)
+    parser.add_argument("--dt", type=float, default=0.001)
+    parser.add_argument("--steps", type=int, default=60000)
     args = parser.parse_args()
 
     # početni uslovi: theta1, omega1, theta2, omega2

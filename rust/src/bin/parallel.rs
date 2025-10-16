@@ -153,7 +153,7 @@ fn main() {
     // usage: parallel <num_runs> <dt> <steps>
     let num_runs: usize = args.get(1).and_then(|s| s.parse().ok()).unwrap_or(num_cpus::get());
     let dt: f64 = args.get(2).and_then(|s| s.parse().ok()).unwrap_or(0.001);
-    let steps: usize = args.get(3).and_then(|s| s.parse().ok()).unwrap_or(100000);
+    let steps: usize = args.get(3).and_then(|s| s.parse().ok()).unwrap_or(60000);
 
     let params = Params { m1:1.0, m2:1.0, l1:1.0, l2:1.0, g:9.81 };
     let base = [std::f64::consts::FRAC_PI_2, 0.0, std::f64::consts::FRAC_PI_2 + 0.01, 0.0];

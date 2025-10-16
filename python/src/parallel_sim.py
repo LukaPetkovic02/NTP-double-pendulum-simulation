@@ -1,5 +1,5 @@
 import multiprocessing as mp
-import os, time
+import os, time, argparse
 import numpy as np
 from simulate import run_single
 
@@ -19,15 +19,19 @@ def make_initial_conditions(base, n, delta=1e-3):
     return inits
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--nproc", type=int, default=mp.cpu_count(), help="Broj procesa")
+    args = parser.parse_args()
+
     outdir = "outputs/parallel"
     os.makedirs(outdir, exist_ok=True)
     dt = 0.001
-    steps = 100000  # za razvoj; povećaš za finalno merenje
+    steps = 60000  # za razvoj; povećaš za finalno merenje
     params = {"m1":1.0,"m2":1.0,"l1":1.0,"l2":1.0,"g":9.81}
     base = [np.pi/2, 0.0, np.pi/2 + 0.01, 0.0]
 
-    N = mp.cpu_count()  # koliko simulacija paralelno
-    print(N)
+    N = args.nproc
+    print(f"Pokrecem sa {N} procesa...")
     initials = make_initial_conditions(base, N, delta=1e-3)
 
     tasks = [(i, initials[i], params, dt, steps, outdir) for i in range(N)]

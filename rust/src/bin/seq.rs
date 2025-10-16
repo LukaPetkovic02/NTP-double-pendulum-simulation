@@ -150,7 +150,7 @@ fn main() {
     // usage: seq <out_path> <dt> <steps>
     let out = args.get(1).cloned().unwrap_or_else(|| "rust_outputs/traj_000.csv".to_string());
     let dt = parse_arg(&args, 2, 0.001_f64);
-    let steps = parse_arg(&args, 3, 100000_usize);
+    let steps = parse_arg(&args, 3, 60000_usize);
 
     let params = Params { m1:1.0, m2:1.0, l1:1.0, l2:1.0, g:9.81 };
     let y0 = [std::f64::consts::FRAC_PI_2, 0.0, std::f64::consts::FRAC_PI_2 + 0.01, 0.0];
