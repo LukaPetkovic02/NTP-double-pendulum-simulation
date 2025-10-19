@@ -8,15 +8,16 @@ def run_single(output_path, y0, params, dt, steps):
     times, traj, energies = integrate(y0, dt, steps, derivatives, params, record_energy_fn=energy)
     elapsed = time.perf_counter() - start
 
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    with open(output_path, "w", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow(["t","theta1","omega1","theta2","omega2","energy"])
-        for i in range(len(times)):
-            t = times[i]
-            th1, om1, th2, om2 = traj[i]
-            en = energies[i] if energies is not None else ""
-            writer.writerow([t, th1, om1, th2, om2, en])
+    if output_path:
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        with open(output_path, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["t","theta1","omega1","theta2","omega2","energy"])
+            for i in range(len(times)):
+                t = times[i]
+                th1, om1, th2, om2 = traj[i]
+                en = energies[i] if energies is not None else ""
+                writer.writerow([t, th1, om1, th2, om2, en])
 
     return elapsed
 
