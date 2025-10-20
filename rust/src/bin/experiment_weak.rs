@@ -4,54 +4,38 @@ use std::fs::File;
 use std::io::Write;
 
 fn main() {
-    let processes = [1, 2, 4, 8];
+    let processes = [1,2,4,8];
     let repeats = 30;
-    let f_seq = 0.02_f64;
+    let f_seq = 0.05_f64;
+    let base_runs = 2;
+    let steps = 60_000_000;    
 
-    let mut file = File::create("results_rust_weak.csv").expect("cannot create file");
-    writeln!(file, "nproc,mean_time,std_dev,speedup,gustafson,ideal").unwrap();
+    let mut file = File::create("results_rust_weak.csv").unwrap();
+    writeln!(file, "nproc,mean_time,std_dev,scaled_speedup,gustafson,ideal").unwrap();
 
-    let mut seq_time = 0.0;
-
-    println!("--- WEAK SCALING (Rust Optimized) ---");
-
-    for &nproc in &processes {
+    let mut t1 = 0.0;
+    println!("--- WEAK SCALING (Rust, CPU-only) ---");
+    for &p in &processes {
+        let runs = p * base_runs;  // posao ∝ p
         let mut times = vec![];
         for _ in 0..repeats {
             let start = Instant::now();
-
             Command::new("./target/release/parallel1")
-                .env("RAYON_NUM_THREADS", nproc.to_string())
-                .output()
-                .expect("failed to run parallel1");
-
-            let elapsed = start.elapsed().as_secs_f64();
-            times.push(elapsed);
+                .env("RAYON_NUM_THREADS", p.to_string())
+                .args([format!("--runs={runs}"), format!("--steps={steps}")])
+                .output().unwrap();
+            times.push(start.elapsed().as_secs_f64());
         }
+        let mean = times.iter().sum::<f64>()/times.len() as f64;
+        let std  = (times.iter().map(|t|(t-mean).powi(2)).sum::<f64>()/times.len() as f64).sqrt();
 
-        let mean = times.iter().sum::<f64>() / times.len() as f64;
-        let std_dev =
-            (times.iter().map(|t| (t - mean).powi(2)).sum::<f64>() / times.len() as f64).sqrt();
+        if p==1 { t1 = mean; }
+        let scaled_speedup = (p as f64) * (t1/mean);
+        let gustafson = p as f64 - (p as f64 - 1.0)*f_seq;
+        let ideal = p as f64;
 
-        if nproc == 1 {
-            seq_time = mean;
-        }
-
-        let speedup = seq_time / mean;
-        let gustafson = nproc as f64 - (nproc as f64 - 1.0) * f_seq;
-        let ideal = nproc as f64;
-        let capped = speedup.min(gustafson).min(ideal);
-
-        println!(
-            "{nproc} threads -> mean={mean:.4}s, speedup={capped:.2}, gustafson={gustafson:.2}"
-        );
-        writeln!(
-            file,
-            "{},{:.4},{:.4},{:.4},{:.4},{:.4}",
-            nproc, mean, std_dev, capped, gustafson, ideal
-        )
-        .unwrap();
+        println!("{p} threads → mean={mean:.4}s, S_scaled={scaled_speedup:.2}, Gustafson={gustafson:.2}");
+        writeln!(file, "{},{:.6},{:.6},{:.4},{:.4},{:.4}", p, mean, std, scaled_speedup, gustafson, ideal).unwrap();
     }
-
-    println!("\nRezultati su sačuvani u results_rust_weak.csv");
+    println!("Sačuvano u results_rust_weak.csv");
 }

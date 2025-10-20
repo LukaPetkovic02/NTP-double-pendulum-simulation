@@ -69,28 +69,29 @@ fn rk4_step(y: &[f64; 4], dt: f64, p: &Params) -> [f64; 4] {
     ]
 }
 
+fn integrate_no_io(mut y:[f64;4], dt:f64, steps:usize, p:&Params){ 
+    for _ in 0..steps { y = rk4_step(&y, dt, p); }
+}
+
 fn main() {
-    let params = Params {
-        m1: 1.0,
-        m2: 1.0,
-        l1: 1.0,
-        l2: 1.0,
-        g: 9.81,
-    };
+    // CLI: --runs R --steps S
+    let mut runs = 8usize;
+    let mut steps = 600_000;
+    for arg in std::env::args().skip(1) {
+        if let Some(v) = arg.strip_prefix("--runs=") { runs = v.parse().unwrap(); }
+        if let Some(v) = arg.strip_prefix("--steps="){ steps = v.parse().unwrap(); }
+    }
+
+    let params = Params{ m1:1.0, m2:1.0, l1:1.0, l2:1.0, g:9.81 };
     let dt = 0.001;
-    let steps = 600000;
-    let mut y = [
-        std::f64::consts::FRAC_PI_2,
-        0.0,
-        std::f64::consts::FRAC_PI_2 + 0.01,
-        0.0,
-    ];
+    let base = [std::f64::consts::FRAC_PI_2, 0.0, std::f64::consts::FRAC_PI_2+0.01, 0.0];
 
     let start = Instant::now();
-    for _ in 0..steps {
-        y = rk4_step(&y, dt, &params);
+    for i in 0..runs {
+        let mut y = base;
+        y[2] += (i as f64 - runs as f64/2.0) * 1e-3;
+        integrate_no_io(y, dt, steps, &params);
     }
     let elapsed = start.elapsed().as_secs_f64();
-
-    println!("Sekvencijalna simulacija završena za {:.4}s", elapsed);
+    println!("Sekvencijalno (runs={runs}, steps={steps}) za {:.4}s", elapsed);
 }

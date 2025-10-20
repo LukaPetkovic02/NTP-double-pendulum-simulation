@@ -70,44 +70,31 @@ fn rk4_step(y: &[f64; 4], dt: f64, p: &Params) -> [f64; 4] {
     ]
 }
 
-fn integrate_no_io(mut y: [f64; 4], dt: f64, steps: usize, p: &Params) -> f64 {
-    let start = Instant::now();
-    for _ in 0..steps {
-        y = rk4_step(&y, dt, p);
-    }
-    start.elapsed().as_secs_f64()
-}
-
 fn main() {
+    let mut runs = 8usize;
+    let mut steps = 600_000;
+    for arg in std::env::args().skip(1) {
+        if let Some(v) = arg.strip_prefix("--runs=") { runs = v.parse().unwrap(); }
+        if let Some(v) = arg.strip_prefix("--steps="){ steps = v.parse().unwrap(); }
+    }
+
     let dt = 0.001;
-    let steps = 600000;
-    let num_runs = 8;
+    let params = Params{ m1:1.0, m2:1.0, l1:1.0, l2:1.0, g:9.81 };
+    let base = [std::f64::consts::FRAC_PI_2, 0.0, std::f64::consts::FRAC_PI_2+0.01, 0.0];
 
-    let params = Params {
-        m1: 1.0,
-        m2: 1.0,
-        l1: 1.0,
-        l2: 1.0,
-        g: 9.81,
-    };
-
-    let base = [
-        std::f64::consts::FRAC_PI_2,
-        0.0,
-        std::f64::consts::FRAC_PI_2 + 0.01,
-        0.0,
-    ];
-
-    println!("Pokrećem {} paralelnih simulacija (CPU-bound)...", num_runs);
+    println!("Pokrećem {runs} paralelnih simulacija (steps={steps})...");
     let start_all = Instant::now();
 
-    (0..num_runs).into_par_iter().for_each(|i| {
+    (0..runs).into_par_iter().for_each(|i| {
         let mut y0 = base;
-        y0[2] += (i as f64 - (num_runs as f64) / 2.0) * 1e-3;
-        let elapsed = integrate_no_io(y0, dt, steps, &params);
-        println!("Simulacija {} završena za {:.4}s", i, elapsed);
+        y0[2] += (i as f64 - runs as f64/2.0) * 1e-3;
+        // CPU-only:
+        let _ = {
+            let mut y = y0;
+            for _ in 0..steps { y = rk4_step(&y, dt, &params); }
+        };
     });
 
-    let total_time = start_all.elapsed().as_secs_f64();
-    println!("Ukupno vreme paralelne integracije: {:.4}s", total_time);
+    let total = start_all.elapsed().as_secs_f64();
+    println!("Paralelno (runs={runs}, steps={steps}) za {:.4}s", total);
 }

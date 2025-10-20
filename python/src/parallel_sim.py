@@ -37,7 +37,7 @@ if __name__ == "__main__":
     outdir = "outputs/parallel"
     os.makedirs(outdir, exist_ok=True)
     dt = 0.001
-    steps = 100000  # za razvoj; povećaš za finalno merenje
+    steps = 100000
     params = {"m1":1.0,"m2":1.0,"l1":1.0,"l2":1.0,"g":9.81}
     base = [np.pi/2, 0.0, np.pi/2 + 0.01, 0.0]
 
