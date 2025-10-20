@@ -6,14 +6,13 @@ import statistics
 import csv
 import os
 
-# Broj ponavljanja svake konfiguracije da bi se izracunala srednja vrednost i devijacija
-REPEATS = 10  # možeš staviti 30 za finalni izveštaj
+REPEATS = 30
 PROCESSES = [1, 2, 4, 8]  # broj procesa za eksperiment
 DT = 0.001
 STEPS_BASE = 60000  # osnovna veličina posla za 1 proces
 
 # Procena sekvencijalnog dela (f_s)
-F_SEQ = 0.05  # 5% koda se ne može paralelizovati (procena, menjaš po potrebi)
+F_SEQ = 0.05  # 5% koda se ne može paralelizovati
 
 OUTDIR = "results"
 os.makedirs(OUTDIR, exist_ok=True)

@@ -5,17 +5,15 @@ use std::io::Write;
 
 fn main() {
     let processes = [1, 2, 4, 8];
-    let repeats = 5;
-    let dt = "0.001";
-    let steps = "60000";
-    let f_seq = 0.05_f64; // procenat sekvencijalnog dela
+    let repeats = 30;
+    let f_seq = 0.05_f64;
 
     let mut file = File::create("results_rust_strong.csv").expect("cannot create file");
     writeln!(file, "nproc,mean_time,std_dev,speedup,amdahl,ideal").unwrap();
 
     let mut seq_time = 0.0;
 
-    println!("--- STRONG SCALING (Rust) ---");
+    println!("--- STRONG SCALING (Rust Optimized) ---");
 
     for &nproc in &processes {
         let mut times = vec![];
@@ -23,15 +21,14 @@ fn main() {
             let start = Instant::now();
 
             if nproc == 1 {
-                Command::new("cargo")
-                    .args(["run", "--release", "--bin", "seq", "--", "rust_outputs/traj_000.csv", dt, steps])
+                Command::new("./target/release/seq1")
                     .output()
-                    .expect("failed to run seq");
+                    .expect("failed to run seq1");
             } else {
-                Command::new("cargo")
-                    .args(["run", "--release", "--bin", "parallel", "--", &nproc.to_string(), dt, steps])
+                Command::new("./target/release/parallel1")
+                    .env("RAYON_NUM_THREADS", nproc.to_string())
                     .output()
-                    .expect("failed to run parallel");
+                    .expect("failed to run parallel1");
             }
 
             let elapsed = start.elapsed().as_secs_f64();
@@ -39,7 +36,8 @@ fn main() {
         }
 
         let mean = times.iter().sum::<f64>() / times.len() as f64;
-        let std_dev = (times.iter().map(|t| (t - mean).powi(2)).sum::<f64>() / times.len() as f64).sqrt();
+        let std_dev =
+            (times.iter().map(|t| (t - mean).powi(2)).sum::<f64>() / times.len() as f64).sqrt();
 
         if nproc == 1 {
             seq_time = mean;
@@ -50,9 +48,16 @@ fn main() {
         let ideal = nproc as f64;
         let capped = speedup.min(amdahl).min(ideal);
 
-        println!("{nproc} threads -> mean={mean:.4}s, speedup={capped:.2}, amdahl={amdahl:.2}");
-        writeln!(file, "{},{:.4},{:.4},{:.4},{:.4},{:.4}", nproc, mean, std_dev, capped, amdahl, ideal).unwrap();
+        println!(
+            "{nproc} threads -> mean={mean:.4}s, speedup={capped:.2}, amdahl={amdahl:.2}"
+        );
+        writeln!(
+            file,
+            "{},{:.4},{:.4},{:.4},{:.4},{:.4}",
+            nproc, mean, std_dev, capped, amdahl, ideal
+        )
+        .unwrap();
     }
 
-    println!("\nRezultati su sacuvani u results_rust_strong.csv");
+    println!("\nRezultati su sačuvani u results_rust_strong.csv");
 }
