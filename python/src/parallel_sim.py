@@ -45,7 +45,7 @@ if __name__ == "__main__":
     print(f"Pokrecem sa {N} procesa...")
     initials = make_initial_conditions(base, N, delta=1e-3)
 
-    tasks = [(i, initials[i], params, dt, steps//N, outdir) for i in range(N)]
+    tasks = [(i, initials[i], params, dt, steps, outdir) for i in range(N)]
 
     start = time.perf_counter()
     with mp.Pool(processes=N) as pool:
