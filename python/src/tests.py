@@ -7,11 +7,12 @@ import csv
 import os
 
 # --- KONFIGURACIJA EKSPERIMENATA ---
-REPEATS = 3
-PROCESSES = [1, 2, 4, 8]
+REPEATS = 30
+PROCESSES = [1, 2, 4, 8, 16]
 DT = 0.001
 STEPS_BASE = 60000
-F_SEQ = 0.05  # procenat sekvencijalnog dela
+JOBS = 16
+F_SEQ = 0.05
 OUTDIR = "results"
 
 os.makedirs(OUTDIR, exist_ok=True)
@@ -19,7 +20,6 @@ os.makedirs(OUTDIR, exist_ok=True)
 
 # --- POMOĆNE FUNKCIJE ---
 def run_command(cmd):
-    """Pokreće komandu i vraća CPU vreme izvršavanja (u sekundama)."""
     start = time.perf_counter()
     subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     return time.perf_counter() - start
@@ -33,7 +33,6 @@ def gustafson_speedup(p, f_seq):
     return p - f_seq * (p - 1.0)
 
 
-# --- EKSPERIMENT JAKOG SKALIRANJA ---
 def strong_scaling():
     print("\n--- JAKO SKALIRANJE (Python) ---")
     results = []
@@ -41,9 +40,13 @@ def strong_scaling():
         times = []
         for _ in range(REPEATS):
             if nproc == 1:
-                cmd = ["python", "simulate.py", "--dt", str(DT), "--steps", str(STEPS_BASE)]
+                cmd = ["python", "parallel_sim.py",
+                       "--nproc", "1", "--mode", "strong",
+                       "--jobs", str(JOBS), "--dt", str(DT), "--steps", str(STEPS_BASE)]
             else:
-                cmd = ["python", "parallel_sim.py", "--nproc", str(nproc), "--dt", str(DT), "--steps", str(STEPS_BASE)]
+                cmd = ["python", "parallel_sim.py",
+                       "--nproc", str(nproc), "--mode", "strong",
+                       "--jobs", str(JOBS), "--dt", str(DT), "--steps", str(STEPS_BASE)]
             t = run_command(cmd)
             times.append(t)
         mean_t = statistics.mean(times)
@@ -53,18 +56,15 @@ def strong_scaling():
     return results
 
 
-# --- EKSPERIMENT SLABOG SKALIRANJA ---
 def weak_scaling():
     print("\n--- SLABO SKALIRANJE (Python) ---")
     results = []
     for nproc in PROCESSES:
         times = []
-        steps = STEPS_BASE * nproc  # konstantan posao po procesu
         for _ in range(REPEATS):
-            if nproc == 1:
-                cmd = ["python", "simulate.py", "--dt", str(DT), "--steps", str(steps)]
-            else:
-                cmd = ["python", "parallel_sim.py", "--nproc", str(nproc), "--dt", str(DT), "--steps", str(steps)]
+            cmd = ["python", "parallel_sim.py",
+                   "--nproc", str(nproc), "--mode", "weak",
+                   "--jobs", str(JOBS), "--dt", str(DT), "--steps", str(STEPS_BASE)]
             t = run_command(cmd)
             times.append(t)
         mean_t = statistics.mean(times)
@@ -74,7 +74,6 @@ def weak_scaling():
     return results
 
 
-# --- ČUVANJE REZULTATA ---
 def save_results(filename, results, type_):
     path = os.path.join(OUTDIR, filename)
     with open(path, "w", newline="") as f:
@@ -99,7 +98,6 @@ def save_results(filename, results, type_):
     print(f"{type_.capitalize()} results saved to {path}")
 
 
-# --- CRTANJE GRAFIKONA ---
 def plot_scaling(results, f_seq, type_):
     nprocs = [r[0] for r in results]
     times = [r[1] for r in results]
@@ -112,13 +110,13 @@ def plot_scaling(results, f_seq, type_):
         amdahl = [amdahl_speedup(p, f_seq) for p in nprocs]
         plt.plot(nprocs, exp_speedup, "o-", label="Eksperimentalni podaci")
         plt.plot(nprocs, amdahl, "r--", label=f"Amdalov zakon (f={f_seq})")
-        plt.title("Jako skaliranje (Python)")
+        plt.title("Jako skaliranje (Python, ensemble)")
     else:
         exp_speedup = [p * base_time / t for p, t in zip(nprocs, times)]
         gustafson = [gustafson_speedup(p, f_seq) for p in nprocs]
         plt.plot(nprocs, exp_speedup, "o-", label="Eksperimentalni podaci")
         plt.plot(nprocs, gustafson, "r--", label=f"Gustafsonov zakon (f={f_seq})")
-        plt.title("Slabo skaliranje (Python)")
+        plt.title("Slabo skaliranje (Python, ensemble)")
 
     plt.plot(nprocs, nprocs, "k:", label="Idealno skaliranje")
     plt.xlabel("Broj procesa")
@@ -131,7 +129,6 @@ def plot_scaling(results, f_seq, type_):
     print(f"Saved plot {type_}_scaling.png")
 
 
-# --- GLAVNI PROGRAM ---
 if __name__ == "__main__":
     strong = strong_scaling()
     weak = weak_scaling()

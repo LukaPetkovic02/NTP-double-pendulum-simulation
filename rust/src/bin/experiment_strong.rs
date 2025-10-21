@@ -4,7 +4,7 @@ use std::fs::File;
 use std::io::Write;
 
 fn main() {
-    let processes = [1, 2, 4, 8];
+    let processes = [1, 2, 4, 8, 16];
     let repeats = 30;
     let f_seq = 0.05_f64;
 
