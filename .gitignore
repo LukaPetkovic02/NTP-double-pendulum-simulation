@@ -49,3 +49,4 @@ Thumbs.db
 # -----------------------------
 target/
 Cargo.lock
+/golang/out_go
