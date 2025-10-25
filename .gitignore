@@ -50,3 +50,13 @@ Thumbs.db
 target/
 Cargo.lock
 /golang/out_go
+/golang/out_go_strong_w1
+/golang/out_go_strong_w16
+/golang/out_go_strong_w2
+/golang/out_go_strong_w4
+/golang/out_go_strong_w8
+/golang/out_go_weak_w1
+/golang/out_go_weak_w16
+/golang/out_go_weak_w2
+/golang/out_go_weak_w4
+/golang/out_go_weak_w8
