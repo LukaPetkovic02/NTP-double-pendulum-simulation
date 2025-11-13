@@ -71,8 +71,8 @@ fn rk4_step(y: &[f64; 4], dt: f64, p: &Params) -> [f64; 4] {
 }
 
 fn main() {
-    let mut runs = 8usize;
-    let mut steps = 600_000;
+    let mut runs = 16usize;
+    let mut steps = 600_000usize;
     for arg in std::env::args().skip(1) {
         if let Some(v) = arg.strip_prefix("--runs=") { runs = v.parse().unwrap(); }
         if let Some(v) = arg.strip_prefix("--steps="){ steps = v.parse().unwrap(); }
@@ -82,19 +82,22 @@ fn main() {
     let params = Params{ m1:1.0, m2:1.0, l1:1.0, l2:1.0, g:9.81 };
     let base = [std::f64::consts::FRAC_PI_2, 0.0, std::f64::consts::FRAC_PI_2+0.01, 0.0];
 
-    println!("Pokrećem {runs} paralelnih simulacija (steps={steps})...");
+    //println!("Pokrećem {runs} paralelnih simulacija (steps={steps})...");
     let start_all = Instant::now();
 
     (0..runs).into_par_iter().for_each(|i| {
         let mut y0 = base;
-        y0[2] += (i as f64 - runs as f64/2.0) * 1e-3;
-        // CPU-only:
-        let _ = {
-            let mut y = y0;
-            for _ in 0..steps { y = rk4_step(&y, dt, &params); }
-        };
+        y0[2] += (i as f64 - runs as f64 / 2.0) * 1e-3;
+
+        let mut y = y0;
+        for _ in 0..steps {
+            y = rk4_step(&y, dt, &params);
+        }
+
+    // 🔒 sprečava optimizaciju izbacivanja
+        std::hint::black_box(y);
     });
 
     let total = start_all.elapsed().as_secs_f64();
-    println!("Paralelno (runs={runs}, steps={steps}) za {:.4}s", total);
+    println!("{total}");
 }

@@ -8,7 +8,7 @@ fn main() {
     let repeats = 30;
     let f_seq = 0.05_f64;
     let base_runs = 2;
-    let steps = 60_000_000;    
+    let steps = 600_000;    
 
     let mut file = File::create("results_rust_weak.csv").unwrap();
     writeln!(file, "nproc,mean_time,std_dev,scaled_speedup,gustafson,ideal").unwrap();

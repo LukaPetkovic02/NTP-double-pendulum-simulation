@@ -71,12 +71,13 @@ fn rk4_step(y: &[f64; 4], dt: f64, p: &Params) -> [f64; 4] {
 
 fn integrate_no_io(mut y:[f64;4], dt:f64, steps:usize, p:&Params){ 
     for _ in 0..steps { y = rk4_step(&y, dt, p); }
+    std::hint::black_box(y);
 }
 
 fn main() {
     // CLI: --runs R --steps S
-    let mut runs = 8usize;
-    let mut steps = 600_000;
+    let mut runs = 16usize;
+    let mut steps = 600_000usize;
     for arg in std::env::args().skip(1) {
         if let Some(v) = arg.strip_prefix("--runs=") { runs = v.parse().unwrap(); }
         if let Some(v) = arg.strip_prefix("--steps="){ steps = v.parse().unwrap(); }
@@ -93,5 +94,5 @@ fn main() {
         integrate_no_io(y, dt, steps, &params);
     }
     let elapsed = start.elapsed().as_secs_f64();
-    println!("Sekvencijalno (runs={runs}, steps={steps}) za {:.4}s", elapsed);
+    println!("{elapsed}");
 }
